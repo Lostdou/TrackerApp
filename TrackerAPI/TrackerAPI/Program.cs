@@ -1,6 +1,5 @@
 using Npgsql;
 using System.Data;
-using TrackerApi.Data;
 using TrackerAPI.Data;
 
 var builder = WebApplication.CreateBuilder(args);
