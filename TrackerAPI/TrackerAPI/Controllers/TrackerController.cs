@@ -48,7 +48,7 @@ namespace TrackerAPI.Controllers
                 data.Name,
                 data.Lat,
                 data.Lon,
-                LastUpdated = DateTime.UtcNow // <--- IMPORTANTE: Usar UTC para la nube
+                LastUpdated = DateTime.UtcNow
             });
 
             // Buscar a la pareja
@@ -66,14 +66,13 @@ namespace TrackerAPI.Controllers
                 return Ok(new { message = $"Esperando a alguien con el código: {data.PairingCode}..." });
             }
 
-            // Calcular distancia
             double km = Haversine(data.Lat, data.Lon, partner.Latitude, partner.Longitude);
 
             return Ok(new
             {
                 target = partner.Name,
                 distanceKm = Math.Round(km, 2),
-                lastSeen = partner.LastUpdate, // Se enviará en UTC, la App debe convertirlo a hora local
+                lastSeen = partner.LastUpdate,
                 message = $"Estás a {Math.Round(km, 2)} km de {partner.Name}"
             });
         }
@@ -90,7 +89,6 @@ namespace TrackerAPI.Controllers
             return Ok(user);
         }
 
-        // --- Fórmula Matemática (Sin cambios) ---
         private double Haversine(double lat1, double lon1, double lat2, double lon2)
         {
             var R = 6371;
