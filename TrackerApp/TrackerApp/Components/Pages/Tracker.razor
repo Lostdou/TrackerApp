@@ -1,0 +1,114 @@
+﻿@page "/tracker"
+@inject NavigationManager Nav
+@inject HttpClient Http
+@using Plugin.LocalNotification
+@inject INotificationService NotificationService
+
+<div class="flex flex-col h-screen bg-gray-50 dark:bg-dark-bg transition-colors duration-300 relative">
+
+    <div class="bg-white dark:bg-dark-card p-6 rounded-b-[2rem] shadow-sm z-10 flex justify-between items-center transition-colors duration-300">
+        <div>
+            <p class="text-[10px] text-gray-400 dark:text-gray-500 font-black tracking-widest uppercase flex items-center gap-1 mb-1">
+                <i class="fas fa-hashtag text-love"></i> SALA: @pairingCode
+            </p>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+                Hola, <span class="text-love">@myName</span>
+            </h2>
+        </div>
+
+        <button @onclick="GoToDetails" class="bg-soft-bg dark:bg-gray-800 w-12 h-12 rounded-full text-love flex items-center justify-center hover:bg-pink-100 dark:hover:bg-gray-700 transition shadow-sm active:scale-90">
+            <i class="fas fa-gear text-xl"></i>
+        </button>
+    </div>
+
+    <div class="flex-1 flex flex-col justify-center items-center p-6 space-y-6">
+
+        @if (apiResponse != null)
+        {
+            <div class="bg-white dark:bg-dark-card w-full rounded-[2rem] p-8 shadow-xl text-center border border-pink-100 dark:border-gray-800 animate-pulse relative overflow-hidden transition-colors duration-300">
+                <i class="fas fa-map-location-dot absolute -right-6 -bottom-6 text-[8rem] text-gray-50 dark:text-gray-800 opacity-50 transform rotate-12"></i>
+
+                <p class="text-gray-400 dark:text-dark-muted text-sm mb-1 flex items-center justify-center gap-2 font-medium">
+                    <i class="fas fa-location-dot text-love"></i>
+                    Distancia hacia <span class="text-love font-bold uppercase">@apiResponse.target</span>
+                </p>
+
+                <h1 class="text-6xl font-black text-gray-800 dark:text-white mb-2 tracking-tighter z-10 relative">
+                    @apiResponse.distanceKm<span class="text-2xl text-gray-400 dark:text-gray-600 font-normal ml-1">km</span>
+                </h1>
+
+                <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold gap-2 shadow-sm z-10 relative">
+                    <i class="fas fa-clock"></i>
+                    ULTIMA VEZ: @GetTimeAgo(apiResponse.lastSeen)
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-gray-300 dark:text-gray-600 flex flex-col items-center">
+                <div class="mb-6 bg-white dark:bg-dark-card p-8 rounded-full shadow-lg flex items-center justify-center relative transition-colors duration-300">
+                    <div class="absolute inset-0 bg-pink-50 dark:bg-pink-900/20 rounded-full animate-ping opacity-75"></div>
+                    <i class="fas fa-satellite-dish text-5xl text-love relative z-10"></i>
+                </div>
+                <p class="font-bold text-lg text-gray-400 dark:text-gray-500">Esperando señal...</p>
+                <p class="text-xs mt-2 text-gray-300 dark:text-gray-700">Asegúrate de que @pairingCode esté activo</p>
+            </div>
+        }
+    </div>
+
+    <div class="p-6 bg-white dark:bg-dark-card rounded-t-[2rem] shadow-[0_-5px_15px_-5px_rgba(0,0,0,0.1)] dark:shadow-none dark:border-t dark:border-gray-800 transition-colors duration-300">
+        <button @onclick="SendLocation" disabled="@isBusy"
+                class="w-full bg-gradient-to-r from-love to-love-dark text-white text-lg font-bold py-5 rounded-2xl shadow-love/40 shadow-lg transform transition active:scale-95 flex justify-center items-center gap-3 disabled:opacity-70">
+            @if (isBusy)
+            {
+                <i class="fas fa-circle-notch fa-spin text-xl"></i>
+                <span>BUSCANDO...</span>
+            }
+            else
+            {
+                <i class="fas fa-radar text-xl"></i>
+                <span>ACTUALIZAR UBICACIÓN</span>
+            }
+        </button>
+    </div>
+</div>
+
+@code {
+    private string pairingCode = "";
+    private string myDeviceId = "";
+    private string myName = "";
+    private bool isBusy = false;
+    private TrackerResponse? apiResponse;
+
+    public class TrackerResponse { public string target { get; set; } public double distanceKm { get; set; } public DateTime lastSeen { get; set; } }
+
+    protected override void OnInitialized()
+    {
+        pairingCode = Preferences.Get("pairing_code", "ERROR");
+        myDeviceId = Preferences.Get("my_device_id", "");
+        myName = Preferences.Get("user_name", "Usuario");
+    }
+
+    private void GoToDetails() => Nav.NavigateTo("/details");
+
+    private async Task SendLocation()
+    {
+        if (isBusy) return;
+        isBusy = true;
+        apiResponse = null;
+        try
+        {
+            var location = await Geolocation.GetLocationAsync(new GeolocationRequest { Timeout = TimeSpan.FromSeconds(5) });
+            if (location != null)
+            {
+                var data = new { DeviceId = myDeviceId, PairingCode = pairingCode, Name = myName, Lat = location.Latitude, Lon = location.Longitude };
+                var response = await Http.PostAsJsonAsync("api/Tracker/update", data);
+                if (response.IsSuccessStatusCode) apiResponse = await response.Content.ReadFromJsonAsync<TrackerResponse>();
+            }
+        }
+        catch (Exception) { }
+        finally { isBusy = false; }
+    }
+
+    private string GetTimeAgo(DateTime dt) => dt.ToString("HH:mm");
+}

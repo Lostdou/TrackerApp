@@ -1,0 +1,79 @@
+﻿@page "/"
+@inject NavigationManager Nav
+@using TrackerApp.Services
+
+<div class="flex flex-col h-full justify-center items-center p-6 bg-gradient-to-b from-soft-bg to-white dark:from-dark-bg dark:to-dark-bg overflow-y-auto transition-colors duration-300">
+
+    <div class="mb-6 p-6 bg-white dark:bg-dark-card rounded-full shadow-lg animate-bounce mt-10 transition-colors duration-300">
+        <i class="fas fa-heart-pulse text-6xl text-love"></i>
+    </div>
+
+    <h1 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">Bienvenido</h1>
+    <p class="text-gray-500 dark:text-dark-muted mb-6 text-center">Configura tu perfil para empezar.</p>
+
+    <div class="w-full max-w-xs space-y-5 pb-10">
+
+        <div>
+            <label class="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-1 ml-1">
+                <i class="fas fa-user mr-1 text-love"></i> Tu Apodo
+            </label>
+            <input type="text" @bind="inputName" maxlength="15"
+                   class="w-full text-center text-xl p-3 border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-700 dark:text-white rounded-2xl focus:outline-none focus:border-love dark:focus:border-love focus:ring-4 focus:ring-pink-100 dark:focus:ring-pink-900/30 transition placeholder-gray-300 dark:placeholder-gray-600 font-bold"
+                   placeholder="Ej: Facu" />
+        </div>
+
+        <div>
+            <label class="block text-sm font-bold text-gray-600 dark:text-gray-300 mb-1 ml-1">
+                <i class="fas fa-key mr-1 text-love"></i> Código de Pareja
+            </label>
+            <input type="text" @bind="inputCode" maxlength="10"
+                   class="w-full text-center text-2xl uppercase tracking-widest p-3 border-2 border-love bg-white dark:bg-dark-card text-gray-800 dark:text-white rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 dark:focus:ring-pink-900/30 transition placeholder-gray-300 dark:placeholder-gray-600 font-mono font-bold"
+                   placeholder="AMOR-123" />
+        </div>
+
+        <button @onclick="SaveAndContinue"
+                class="w-full bg-love hover:bg-love-dark text-white font-bold py-4 rounded-2xl shadow-lg transform transition active:scale-95 flex items-center justify-center gap-2 text-lg">
+            <i class="fas fa-link"></i>
+            <span>CONECTAR</span>
+        </button>
+
+        <div class="relative flex py-2 items-center">
+            <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+            <span class="flex-shrink-0 mx-4 text-gray-400 dark:text-gray-500 text-xs font-bold tracking-wider">O SI ERES EL PRIMERO</span>
+            <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
+        </div>
+
+        <button @onclick="GenerateNew"
+                class="w-full bg-white dark:bg-dark-card text-love dark:text-love-dark border-2 border-love dark:border-love-dark font-bold py-3 rounded-2xl shadow-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition flex items-center justify-center gap-2">
+            <i class="fas fa-wand-magic-sparkles"></i>
+            <span>Generar Nuevo Código</span>
+        </button>
+    </div>
+</div>
+
+@code {
+    private string inputCode = "";
+    private string inputName = "";
+
+    protected override void OnInitialized()
+    {
+        if (Preferences.ContainsKey("pairing_code")) Nav.NavigateTo("/tracker");
+    }
+
+    private void GenerateNew()
+    {
+        var rand = new Random();
+        inputCode = $"DOU-{rand.Next(1000, 9999)}";
+    }
+
+    private void SaveAndContinue()
+    {
+        if (!string.IsNullOrWhiteSpace(inputCode) && !string.IsNullOrWhiteSpace(inputName))
+        {
+            Preferences.Set("pairing_code", inputCode.ToUpper().Trim());
+            Preferences.Set("user_name", inputName.Trim());
+            if (!Preferences.ContainsKey("my_device_id")) Preferences.Set("my_device_id", Guid.NewGuid().ToString().Substring(0, 8));
+            Nav.NavigateTo("/tracker");
+        }
+    }
+}
