@@ -18,7 +18,6 @@ namespace TrackerAPI.Controllers
             _db = db;
         }
 
-        // Definimos el DTO
         public record LocationDto(string DeviceId, string PairingCode, string Name, double Lat, double Lon);
 
         [HttpPost("update")]
@@ -27,18 +26,21 @@ namespace TrackerAPI.Controllers
             if (string.IsNullOrEmpty(data.PairingCode))
                 return BadRequest("Falta el Código de Vinculación (PairingCode)");
 
-            // --- SINTAXIS POSTGRESQL ---
-            // 'EXCLUDED' se refiere a los valores nuevos que intentaste insertar
             var sqlUpsert = @"
-                INSERT INTO UserLocations (DeviceId, PairingCode, Name, Latitude, Longitude, LastUpdate) 
-                VALUES (@DeviceId, @PairingCode, @Name, @Lat, @Lon, @LastUpdated)
-                ON CONFLICT (DeviceId) DO UPDATE SET
-                    PairingCode = EXCLUDED.PairingCode,
-                    Latitude = EXCLUDED.Latitude,
-                    Longitude = EXCLUDED.Longitude,
-                    LastUpdate = EXCLUDED.LastUpdate,
-                    -- Lógica: Si viene un nombre nuevo, úsalo. Si no, mantén el viejo (UserLocations.Name)
-                    Name = CASE WHEN @Name IS NOT NULL AND @Name != '' THEN @Name ELSE UserLocations.Name END;
+                MERGE INTO UserLocations AS target
+                USING (SELECT @DeviceId AS DeviceId) AS source
+                ON (target.DeviceId = source.DeviceId)
+                WHEN MATCHED THEN
+                    UPDATE SET 
+                        PairingCode = @PairingCode,
+                        Latitude = @Lat,
+                        Longitude = @Lon,
+                        LastUpdate = @LastUpdated,
+                        -- Si envían nombre, actualízalo. Si no, deja el que estaba.
+                        Name = CASE WHEN @Name IS NOT NULL AND @Name != '' THEN @Name ELSE target.Name END
+                WHEN NOT MATCHED THEN
+                    INSERT (DeviceId, PairingCode, Name, Latitude, Longitude, LastUpdate)
+                    VALUES (@DeviceId, @PairingCode, @Name, @Lat, @Lon, @LastUpdated);
             ";
 
             await _db.ExecuteAsync(sqlUpsert, new
@@ -51,13 +53,11 @@ namespace TrackerAPI.Controllers
                 LastUpdated = DateTime.UtcNow
             });
 
-            // Buscar a la pareja
             var sqlGetPartner = @"
-                SELECT * FROM UserLocations 
+                SELECT TOP 1 * FROM UserLocations 
                 WHERE PairingCode = @PairingCode 
                   AND DeviceId != @DeviceId 
-                ORDER BY LastUpdate DESC 
-                LIMIT 1";
+                ORDER BY LastUpdate DESC";
 
             var partner = await _db.QueryFirstOrDefaultAsync<UserLocation>(sqlGetPartner, new { data.PairingCode, data.DeviceId });
 
@@ -77,15 +77,12 @@ namespace TrackerAPI.Controllers
             });
         }
 
-        // --- GET para ver datos desde el navegador (Debugging) ---
         [HttpGet("{deviceId}")]
         public async Task<IActionResult> GetByDevice(string deviceId)
         {
             var sql = "SELECT * FROM UserLocations WHERE DeviceId = @deviceId";
             var user = await _db.QueryFirstOrDefaultAsync<UserLocation>(sql, new { deviceId });
-
             if (user == null) return NotFound("Dispositivo no encontrado");
-
             return Ok(user);
         }
 
@@ -100,7 +97,6 @@ namespace TrackerAPI.Controllers
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
             return R * c;
         }
-        
         private double ToRadians(double angle) => Math.PI * angle / 180.0;
     }
 }
