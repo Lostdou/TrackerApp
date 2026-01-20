@@ -54,8 +54,8 @@ namespace TrackerApp.Services
 
                     if (result != null && result.distanceKm > 0)
                     {
-                        // 4. Calcular "Hace cuánto"
-                        var timeSpan = DateTime.Now - result.lastSeen;
+                        var timeSpan = DateTime.UtcNow - result.lastSeen;
+
                         string tiempoTexto = timeSpan.TotalMinutes < 60
                             ? $"{Math.Ceiling(timeSpan.TotalMinutes)} min"
                             : $"{Math.Round(timeSpan.TotalHours, 1)} hs";

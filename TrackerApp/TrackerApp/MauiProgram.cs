@@ -22,7 +22,10 @@ namespace TrackerApp
 
             builder.Services.AddScoped(sp => new HttpClient
             {
-                BaseAddress = new Uri("http://10.0.2.2:5148/")
+                // Desarrollo
+                //BaseAddress = new Uri("http://10.0.2.2:5148/")
+                // Prod
+                BaseAddress = new Uri("https://doutracker-api.onrender.com/")
             });
             builder.Services.AddScoped<TrackerApp.Services.TrackerService>();
 

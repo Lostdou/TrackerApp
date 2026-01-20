@@ -20,8 +20,8 @@ namespace TrackerApp
         private void StartBackgroundLoop()
         {
 
-            //var intervalo = TimeSpan.FromMinutes(10);
-            var intervalo = TimeSpan.FromSeconds(10);
+            var intervalo = TimeSpan.FromMinutes(10);
+            //var intervalo = TimeSpan.FromSeconds(10);
 
 
             _timer = new System.Threading.Timer(async _ =>
