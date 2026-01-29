@@ -1,3 +1,9 @@
+UPDATES FUTURAS:
+Controlar el flujo de actualizaciones, para evitar tener que desinstalar la APP
+
+
+
+
 - Tracker
 -- Mostrar en un mapa la ubicacion de ambos
 

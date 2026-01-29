@@ -1,41 +1,7 @@
 ﻿@inherits LayoutComponentBase
-@inject HttpClient Http
-@using Plugin.Firebase.CloudMessaging
 
-<div class="page">
-    <main>
+<div class="h-screen w-screen bg-soft-bg dark:bg-dark-bg text-gray-800 dark:text-dark-text font-sans overflow-y-auto transition-colors duration-300">
+    <main class="h-full w-full">
         @Body
     </main>
 </div>
-
-@code {
-    protected override async Task OnInitializedAsync()
-    {
-        // Intentar registrar el token en segundo plano al iniciar
-        await RegisterFirebaseToken();
-    }
-
-    private async Task RegisterFirebaseToken()
-    {
-        try
-        {
-#if ANDROID
-            await CrossFirebaseCloudMessaging.Current.CheckIfValidAsync();
-            var token = await CrossFirebaseCloudMessaging.Current.GetTokenAsync();
-            var myId = Preferences.Get("my_device_id", "");
-
-            if (!string.IsNullOrEmpty(token) && !string.IsNullOrEmpty(myId))
-            {
-                // Enviamos a tu API
-                var data = new { DeviceId = myId, Token = token, Platform = "Android" };
-                await Http.PostAsJsonAsync("api/Notifications/register", data);
-                Console.WriteLine($"[FCM] Token registrado: {token}");
-            }
-#endif
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[FCM] Error: {ex.Message}");
-        }
-    }
-}

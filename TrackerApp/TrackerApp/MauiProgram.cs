@@ -17,9 +17,12 @@ namespace TrackerApp
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
-            string baseUrl = "http://localhost:5148";
+
+            string baseUrl = "https://doutracker-api.onrender.com";
 #if ANDROID
-            baseUrl = "http://10.0.2.2:5148";
+            baseUrl = "https://doutracker-api.onrender.com";
+
+            //baseUrl = "http://10.0.2.2:5148";
 #endif
 
             builder.Services.AddScoped(sp =>

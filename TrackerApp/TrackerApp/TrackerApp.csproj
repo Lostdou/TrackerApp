@@ -23,21 +23,19 @@
 
 	<ItemGroup>
 		<MauiIcon Include="Resources\AppIcon\appicon.svg" Color="#FFFFFF" />
-
 		<MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#ff4d6d" BaseSize="128,128" />
-
 		<MauiImage Include="Resources\Images\*" />
 		<MauiFont Include="Resources\Fonts\*" />
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Remove="wwwroot\images\appicon.png" />
-	  <Content Remove="wwwroot\images\zorros.png" />
+		<Content Remove="wwwroot\images\appicon.png" />
+		<Content Remove="wwwroot\images\zorros.png" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="Platforms\Android\Resources\values\strings.xml" />
+		<None Remove="Platforms\Android\Resources\values\strings.xml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -45,14 +43,12 @@
 		<PackageReference Include="Microsoft.Maui.Controls.Compatibility" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
-		<PackageReference Include="Plugin.Firebase" Version="3.0.0" />
-
-		<PackageReference Include="Plugin.Firebase.CloudMessaging" Version="3.0.0" />
 
 		<PackageReference Include="Plugin.LocalNotification" Version="11.1.4" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-android'">
+		<PackageReference Include="Xamarin.AndroidX.Activity" Version="1.9.2.1" />
 		<PackageReference Include="Xamarin.AndroidX.Activity.Ktx" Version="1.9.0.3" />
 		<PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.4.3.1" />
 		<PackageReference Include="Xamarin.AndroidX.Fragment" Version="1.8.3.1" />
@@ -63,8 +59,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiAsset Include="wwwroot\images\appicon.png" />
-	  <MauiAsset Include="wwwroot\images\zorros.png" />
+		<MauiAsset Include="wwwroot\images\appicon.png" />
+		<MauiAsset Include="wwwroot\images\zorros.png" />
 	</ItemGroup>
 
 </Project>
