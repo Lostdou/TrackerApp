@@ -28,7 +28,7 @@
             </label>
             <input type="text" @bind="inputCode" maxlength="10"
                    class="w-full text-center text-2xl uppercase tracking-widest p-3 border-2 border-love bg-white dark:bg-dark-card text-gray-800 dark:text-white rounded-2xl focus:outline-none focus:ring-4 focus:ring-pink-200 dark:focus:ring-pink-900/30 transition placeholder-gray-300 dark:placeholder-gray-600 font-mono font-bold"
-                   placeholder="AMOR-123" />
+                   placeholder="DOU-123" />
         </div>
 
         <button @onclick="SaveAndContinue"
@@ -57,7 +57,7 @@
 
     protected override void OnInitialized()
     {
-        if (Preferences.ContainsKey("pairing_code")) Nav.NavigateTo("/tracker");
+        if (Preferences.ContainsKey("pairing_code")) Nav.NavigateTo("/dashboard");
     }
 
     private void GenerateNew()
@@ -73,7 +73,7 @@
             Preferences.Set("pairing_code", inputCode.ToUpper().Trim());
             Preferences.Set("user_name", inputName.Trim());
             if (!Preferences.ContainsKey("my_device_id")) Preferences.Set("my_device_id", Guid.NewGuid().ToString().Substring(0, 8));
-            Nav.NavigateTo("/tracker");
+            Nav.NavigateTo("/dashboard");
         }
     }
 }

@@ -18,88 +18,96 @@ namespace TrackerApp.Services
         {
             try
             {
-                // 1. Recuperar datos guardados
+                // 1. Validar datos
                 var deviceId = Preferences.Get("my_device_id", "");
                 var pairingCode = Preferences.Get("pairing_code", "");
 
-                if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(pairingCode))
-                    return; // No estamos listos todavía
+                if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(pairingCode)) return;
 
-                // 2. Obtener mi GPS actual
-                // Nota: Pedimos "LastKnownLocation" primero porque es más rápido y gasta menos batería
+                // 2. Obtener Ubicación
                 var location = await Geolocation.GetLastKnownLocationAsync() ?? await Geolocation.GetLocationAsync(new GeolocationRequest
                 {
                     DesiredAccuracy = GeolocationAccuracy.Medium,
-                    Timeout = TimeSpan.FromSeconds(10)
+                    Timeout = TimeSpan.FromSeconds(5)
                 });
 
-                if (location == null) return;
-
-                // 3. Enviar a la API
-                var userName = Preferences.Get("user_name", $"Android {deviceId.Substring(0, 3)}");
-
-                var data = new
+                if (location != null)
                 {
-                    DeviceId = deviceId,
-                    PairingCode = pairingCode,
-                    Name = userName,
-                    Lat = location.Latitude,
-                    Lon = location.Longitude
-                };
-                var response = await _http.PostAsJsonAsync("api/Tracker/update", data);
+                    // 3. Enviar Ubicación a la API
+                    var userName = Preferences.Get("user_name", $"User {deviceId.Substring(0, 3)}");
+                    var data = new { DeviceId = deviceId, PairingCode = pairingCode, Name = userName, Lat = location.Latitude, Lon = location.Longitude };
 
-                if (response.IsSuccessStatusCode)
-                {
-                    var result = await response.Content.ReadFromJsonAsync<TrackerResponse>();
+                    // Fire and forget (enviamos sin detenernos demasiado a esperar)
+                    var response = await _http.PostAsJsonAsync("api/Tracker/update", data);
 
-                    if (result != null && result.distanceKm > 0)
+                    if (response.IsSuccessStatusCode)
                     {
-                        var timeSpan = DateTime.UtcNow - result.lastSeen;
-
-                        string tiempoTexto = timeSpan.TotalMinutes < 60
-                            ? $"{Math.Ceiling(timeSpan.TotalMinutes)} min"
-                            : $"{Math.Round(timeSpan.TotalHours, 1)} hs";
-
-                        // 5. Lanzar Notificación (Formato pedido)
-                        await ShowNotification(result.target, result.distanceKm, tiempoTexto);
+                        var result = await response.Content.ReadFromJsonAsync<TrackerResponse>();
+                        // Si quisieras notificar por cercanía, descomenta esto:
+                        /*
+                        if (result != null && result.distanceKm > 0 && result.distanceKm < 1.0)
+                        {
+                            await ShowNotification("¡Están cerca!", result.Message);
+                        }
+                        */
                     }
                 }
+
+                // --- SECCIÓN DESACTIVADA PARA EL SISTEMA DE BUZÓN ---
+                // No consultamos mensajes aquí para no quitarlos del buzón antes de leerlos.
+                /*
+                var msgsResponse = await _http.GetAsync($"api/Notifications/check/{deviceId}");
+                if (msgsResponse.IsSuccessStatusCode)
+                {
+                    var messages = await msgsResponse.Content.ReadFromJsonAsync<List<MessageDto>>();
+                    if (messages != null && messages.Any())
+                    {
+                        foreach (var msg in messages)
+                        {
+                            await ShowNotification($"Nota de {msg.SenderName} 📝", "Tienes una nueva cartita en el buzón");
+                        }
+                    }
+                }
+                */
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error en Background: {ex.Message}");
+                Console.WriteLine($"Error en TrackerService: {ex.Message}");
             }
         }
 
-        private async Task ShowNotification(string nombre, double distancia, string tiempo)
+        private async Task ShowNotification(string titulo, string descripcion)
         {
             var request = new NotificationRequest
             {
-                NotificationId = 100,
-                Title = "DouTracker",
-                // FORMATO: {nombre} esta a {distancia} || Hace {tiempo}
-                Description = $"{nombre} está a {distancia} km || Hace {tiempo}",
+                NotificationId = new Random().Next(1000, 9999),
+                Title = titulo,
+                Description = descripcion,
                 BadgeNumber = 1,
-                Schedule = new NotificationRequestSchedule
-                {
-                    NotifyTime = DateTime.Now.AddSeconds(1) // Mostrar inmediatamente
-                },
+                Schedule = new NotificationRequestSchedule { NotifyTime = DateTime.Now.AddSeconds(1) },
                 Android = new Plugin.LocalNotification.AndroidOption.AndroidOptions
                 {
                     IconSmallName = { ResourceName = "appicon" },
-                    VisibilityType = Plugin.LocalNotification.AndroidOption.AndroidVisibilityType.Public,
-                    Priority = Plugin.LocalNotification.AndroidOption.AndroidPriority.High
+                    Priority = Plugin.LocalNotification.AndroidOption.AndroidPriority.High,
+                    VisibilityType = Plugin.LocalNotification.AndroidOption.AndroidVisibilityType.Public
                 }
             };
             await _notificationService.Show(request);
         }
 
-        // Clase auxiliar para leer respuesta
         public class TrackerResponse
         {
             public string target { get; set; }
             public double distanceKm { get; set; }
             public DateTime lastSeen { get; set; }
+            public string Message { get; set; }
+        }
+
+        public class MessageDto
+        {
+            public string SenderName { get; set; }
+            public string Content { get; set; }
+            public DateTime CreatedAt { get; set; }
         }
     }
 }

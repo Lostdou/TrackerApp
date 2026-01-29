@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Plugin.LocalNotification;
-using System.Net.Http; 
-using Plugin.LocalNotification.AndroidOption;
+using TrackerApp.Services;
 
 namespace TrackerApp
 {
@@ -12,22 +11,27 @@ namespace TrackerApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .UseLocalNotification()
+                .UseLocalNotification() 
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
-            builder.Services.AddMauiBlazorWebView();
+            string baseUrl = "http://localhost:5148";
+#if ANDROID
+            baseUrl = "http://10.0.2.2:5148";
+#endif
 
-            builder.Services.AddScoped(sp => new HttpClient
+            builder.Services.AddScoped(sp =>
             {
-                // Desarrollo
-                //BaseAddress = new Uri("http://10.0.2.2:5148/")
-                // Prod
-                BaseAddress = new Uri("https://doutracker-api.onrender.com/")
+                var handler = new HttpClientHandler();
+                handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true;
+                return new HttpClient(handler) { BaseAddress = new Uri(baseUrl) };
             });
-            builder.Services.AddScoped<TrackerApp.Services.TrackerService>();
+
+            builder.Services.AddScoped<TrackerService>();
+
+            builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();

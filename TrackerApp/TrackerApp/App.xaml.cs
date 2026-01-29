@@ -13,31 +13,28 @@ namespace TrackerApp
             _serviceProvider = serviceProvider;
             MainPage = new MainPage();
 
-            // Iniciamos el ciclo de fondo
+            // Loop
             StartBackgroundLoop();
         }
 
         private void StartBackgroundLoop()
         {
+            // Intervalo de 2 horas
+            //var intervalo = TimeSpan.FromHours(2);
 
-            var intervalo = TimeSpan.FromMinutes(10);
-            //var intervalo = TimeSpan.FromSeconds(10);
-
+            // Para pruebas rápidas descomenta esto:
+            var intervalo = TimeSpan.FromSeconds(30);
 
             _timer = new System.Threading.Timer(async _ =>
             {
-                // Como estamos en un hilo secundario (Timer), necesitamos crear un scope
-                // para acceder a los servicios inyectados
                 using (var scope = _serviceProvider.CreateScope())
                 {
-                    var trackerService = scope.ServiceProvider.GetRequiredService<TrackerService>();
-
+                    var service = scope.ServiceProvider.GetRequiredService<TrackerService>();
                     await MainThread.InvokeOnMainThreadAsync(async () =>
                     {
-                        await trackerService.CheckAndNotify();
+                        await service.CheckAndNotify();
                     });
                 }
-
             }, null, TimeSpan.Zero, intervalo);
         }
     }

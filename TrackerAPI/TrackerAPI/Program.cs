@@ -1,5 +1,7 @@
 using Microsoft.Data.SqlClient;
 using System.Data;
+using TrackerAPI.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,12 @@ builder.Services.AddScoped<IDbConnection>(sp =>
 
     return new SqlConnection(connectionString);
 });
+
+builder.Services.AddHttpClient<ITmdbService, TmdbService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.themoviedb.org/3/");
+});
+
 
 var app = builder.Build();
 

@@ -1,0 +1,230 @@
+﻿@page "/postit"
+@inject NavigationManager Nav
+@inject HttpClient Http
+
+<div class="flex flex-col h-screen bg-gray-50 dark:bg-dark-bg transition-colors duration-300 relative overflow-hidden">
+    <div class="flex flex-col p-6 z-10 bg-white dark:bg-dark-card shadow-sm rounded-b-3xl">
+        <div class="flex justify-between items-center mb-4">
+            <button @onclick='() => Nav.NavigateTo("/dashboard")' class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 hover:text-love flex items-center justify-center transition">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <h2 class="text-lg font-bold text-gray-800 dark:text-white uppercase tracking-widest text-[10px]">Correo</h2>
+            <div class="w-10"></div>
+        </div>
+
+        <div class="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+            <button @onclick='() => activeTab = "buzon"'
+                    class="flex-1 py-2 rounded-lg text-sm font-bold transition-all @(activeTab == "buzon" ? "bg-white dark:bg-gray-600 text-love shadow-sm" : "text-gray-400 hover:text-gray-200")">
+                <i class="fas fa-envelope-open-text mr-2"></i>Buzón
+            </button>
+            <button @onclick='() => activeTab = "enviar"'
+                    class="flex-1 py-2 rounded-lg text-sm font-bold transition-all @(activeTab == "enviar" ? "bg-white dark:bg-gray-600 text-love shadow-sm" : "text-gray-400 hover:text-gray-200")">
+                <i class="fas fa-pen-fancy mr-2"></i>Escribir
+            </button>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 relative">
+
+        @if (activeTab == "buzon")
+        {
+            @if (isLoadingMessages)
+            {
+                <div class="flex justify-center items-center h-40 text-gray-400">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Buscando cartitas...
+                </div>
+            }
+            else if (messages.Count == 0)
+            {
+                <div class="flex flex-col items-center justify-center h-full text-gray-400 opacity-60 mt-10">
+                    <i class="fas fa-inbox text-6xl mb-4"></i>
+                    <p>El buzón está vacío...</p>
+                </div>
+            }
+            else
+            {
+                <div class="space-y-4 animate-fade-in-up">
+                    @foreach (var msg in messages)
+                    {
+                        <div @onclick="() => OpenMessage(msg)"
+                             class="bg-white dark:bg-dark-card p-4 rounded-2xl shadow-sm border-l-4 border-yellow-400 cursor-pointer transform transition hover:scale-102 active:scale-95">
+                            <div class="flex justify-between items-start mb-1">
+                                <h3 class="font-bold text-gray-800 dark:text-white">De: @msg.SenderName</h3>
+                                <span class="text-xs text-gray-400">@msg.CreatedAt.ToString("HH:mm")</span>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-300 text-sm truncate">
+                                <i class="fas fa-envelope text-yellow-500 mr-2"></i> Toca para leer...
+                            </p>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        @if (activeTab == "enviar")
+        {
+            <div class="flex flex-col h-full animate-fade-in-up">
+                <div class="text-center mb-6">
+                    <div class="bg-yellow-100 dark:bg-yellow-900/30 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-yellow-500 shadow-sm">
+                        <i class="fas fa-paper-plane text-2xl"></i>
+                    </div>
+                    <h1 class="text-xl font-black text-gray-800 dark:text-white">Nueva Nota</h1>
+                </div>
+
+                <div class="relative flex-1">
+                    <textarea @bind="newMessage" @bind:event="oninput" maxlength="200" placeholder="Escribe algo bonito..."
+                              class="w-full h-full bg-white dark:bg-dark-card text-gray-700 dark:text-white p-6 rounded-[2rem] shadow-sm border-none outline-none resize-none text-lg leading-relaxed focus:ring-2 focus:ring-yellow-400/50 transition-all"></textarea>
+                    <div class="absolute bottom-4 right-6 text-xs font-bold @(newMessage.Length >= 200 ? "text-red-500" : "text-gray-300")">
+                        @newMessage.Length / 200
+                    </div>
+                </div>
+
+                <div class="mt-6 mb-4">
+                    <button @onclick="Send" disabled="@(string.IsNullOrWhiteSpace(newMessage) || isBusy)"
+                            class="w-full bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-lg font-bold py-4 rounded-2xl shadow-lg shadow-orange-500/30 transform transition active:scale-95 disabled:opacity-50 flex justify-center items-center gap-2">
+                        @if (isBusy)
+                        {
+                            <i class="fas fa-circle-notch fa-spin"></i>
+                            <span>ENVIANDO...</span>
+     }
+                        else
+                        {
+                            <i class="fas fa-paper-plane"></i>
+                            <span>ENVIAR</span>
+     }
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (selectedMessage != null)
+    {
+        <div class="absolute inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 animate-fade-in">
+            <div class="bg-yellow-50 dark:bg-gray-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl relative transform scale-100 transition-all">
+
+                <button @onclick="CloseMessage" class="absolute -top-3 -right-3 w-10 h-10 bg-red-500 text-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-600 transition z-10">
+                    <i class="fas fa-times"></i>
+                </button>
+
+                <div class="text-center mb-4">
+                    <i class="fas fa-quote-left text-yellow-400 text-3xl opacity-50"></i>
+                </div>
+
+                <p class="text-xl font-handwriting text-gray-800 dark:text-white text-center leading-relaxed font-bold mb-6">
+                    "@selectedMessage.Content"
+                </p>
+
+                <div class="text-center">
+                    <span class="text-xs text-gray-400 uppercase tracking-widest">Enviado por @selectedMessage.SenderName</span>
+                    <div class="text-xs text-red-400 mt-2 italic">
+                        <i class="fas fa-info-circle mr-1"></i> Se borrará al cerrar
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string activeTab = "buzon";
+    private string newMessage = "";
+    private bool isBusy = false;
+    private bool isLoadingMessages = false;
+    private List<MessageResultDto> messages = new();
+    private MessageResultDto selectedMessage = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMessages();
+    }
+
+    private async Task LoadMessages()
+    {
+        isLoadingMessages = true;
+        try
+        {
+            var deviceId = Preferences.Get("my_device_id", "");
+            var response = await Http.GetFromJsonAsync<List<MessageResultDto>>($"api/Notifications/check/{deviceId}");
+            if (response != null)
+            {
+                messages = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error cargando mensajes: " + ex.Message);
+        }
+        finally
+        {
+            isLoadingMessages = false;
+        }
+    }
+
+    private void OpenMessage(MessageResultDto msg)
+    {
+        selectedMessage = msg;
+    }
+
+    private async Task CloseMessage()
+    {
+        if (selectedMessage == null) return;
+
+        // Borrar del servidor
+        try
+        {
+            await Http.DeleteAsync($"api/Notifications/delete/{selectedMessage.Id}");
+
+            // Borrar de la lista local
+            messages.Remove(selectedMessage);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error borrando mensaje: " + ex.Message);
+        }
+        finally
+        {
+            selectedMessage = null;
+        }
+    }
+
+    private async Task Send()
+    {
+        if (string.IsNullOrWhiteSpace(newMessage)) return;
+        isBusy = true;
+        try
+        {
+            var payload = new
+            {
+                SenderDeviceId = Preferences.Get("my_device_id", ""),
+                SenderName = Preferences.Get("user_name", "Alguien"),
+                PairingCode = Preferences.Get("pairing_code", ""),
+                Content = newMessage
+            };
+
+            var response = await Http.PostAsJsonAsync("api/Notifications/send", payload);
+
+            if (response.IsSuccessStatusCode)
+            {
+                newMessage = "";
+                activeTab = "buzon"; // Volver al buzón
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    public class MessageResultDto
+    {
+        public int Id { get; set; }
+        public string SenderName { get; set; }
+        public string Content { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+}

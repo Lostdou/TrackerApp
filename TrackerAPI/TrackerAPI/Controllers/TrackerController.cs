@@ -20,11 +20,14 @@ namespace TrackerAPI.Controllers
 
         public record LocationDto(string DeviceId, string PairingCode, string Name, double Lat, double Lon);
 
-        [HttpPost("update")]
-        public async Task<IActionResult> UpdateLocation([FromBody] LocationDto data)
+        [HttpPost]
+        [Route("update")]
+        public async Task<ActionResult<ResponseModel<TrackerResponseDto>>> UpdateLocation([FromBody] LocationDto data)
         {
             if (string.IsNullOrEmpty(data.PairingCode))
-                return BadRequest("Falta el Código de Vinculación (PairingCode)");
+            {
+                return Ok(new ResponseModel<TrackerResponseDto> { Code = "400", Message = "Falta PairingCode" });
+            }
 
             var sqlUpsert = @"
                 MERGE INTO UserLocations AS target
@@ -36,7 +39,6 @@ namespace TrackerAPI.Controllers
                         Latitude = @Lat,
                         Longitude = @Lon,
                         LastUpdate = @LastUpdated,
-                        -- Si envían nombre, actualízalo. Si no, deja el que estaba.
                         Name = CASE WHEN @Name IS NOT NULL AND @Name != '' THEN @Name ELSE target.Name END
                 WHEN NOT MATCHED THEN
                     INSERT (DeviceId, PairingCode, Name, Latitude, Longitude, LastUpdate)
@@ -53,6 +55,7 @@ namespace TrackerAPI.Controllers
                 LastUpdated = DateTime.UtcNow
             });
 
+
             var sqlGetPartner = @"
                 SELECT TOP 1 * FROM UserLocations 
                 WHERE PairingCode = @PairingCode 
@@ -63,27 +66,38 @@ namespace TrackerAPI.Controllers
 
             if (partner == null)
             {
-                return Ok(new { message = $"Esperando a alguien con el código: {data.PairingCode}..." });
+                return Ok(new ResponseModel<TrackerResponseDto>
+                {
+                    Code = "202",
+                    Message = $"Esperando compañero ({data.PairingCode})...",
+                    Detalle = null
+                });
             }
 
             double km = Haversine(data.Lat, data.Lon, partner.Latitude, partner.Longitude);
 
-            return Ok(new
+            return Ok(new ResponseModel<TrackerResponseDto>
             {
-                target = partner.Name,
-                distanceKm = Math.Round(km, 2),
-                lastSeen = partner.LastUpdate,
-                message = $"Estás a {Math.Round(km, 2)} km de {partner.Name}"
+                Code = "200",
+                Message = "Ok",
+                Detalle = new TrackerResponseDto
+                {
+                    Target = partner.Name,
+                    DistanceKm = Math.Round(km, 2),
+                    LastSeen = partner.LastUpdate,
+                    Message = $"Estás a {Math.Round(km, 2)} km de {partner.Name}"
+                }
             });
         }
 
-        [HttpGet("{deviceId}")]
-        public async Task<IActionResult> GetByDevice(string deviceId)
+        [HttpGet]
+        [Route("{deviceId}")]
+        public async Task<ActionResult<ResponseModel<UserLocation>>> GetByDevice(string deviceId)
         {
-            var sql = "SELECT * FROM UserLocations WHERE DeviceId = @deviceId";
-            var user = await _db.QueryFirstOrDefaultAsync<UserLocation>(sql, new { deviceId });
-            if (user == null) return NotFound("Dispositivo no encontrado");
-            return Ok(user);
+            var user = await _db.QueryFirstOrDefaultAsync<UserLocation>("SELECT * FROM UserLocations WHERE DeviceId = @deviceId", new { deviceId });
+            return user == null
+                ? Ok(new ResponseModel<UserLocation> { Code = "404", Message = "No encontrado" })
+                : Ok(new ResponseModel<UserLocation> { Code = "200", Detalle = user });
         }
 
         private double Haversine(double lat1, double lon1, double lat2, double lon2)
@@ -91,12 +105,17 @@ namespace TrackerAPI.Controllers
             var R = 6371;
             var dLat = ToRadians(lat2 - lat1);
             var dLon = ToRadians(lon2 - lon1);
-            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                    Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) *
-                    Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-            var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
-            return R * c;
+            var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) + Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            return R * (2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a)));
         }
         private double ToRadians(double angle) => Math.PI * angle / 180.0;
+
+        public class TrackerResponseDto
+        {
+            public string Target { get; set; } = "";
+            public double DistanceKm { get; set; }
+            public DateTime LastSeen { get; set; }
+            public string Message { get; set; } = "";
+        }
     }
 }

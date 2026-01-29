@@ -1,0 +1,295 @@
+﻿@page "/media"
+@using TrackerApp.Data
+@inject HttpClient Http
+@inject NavigationManager Nav
+<div class="flex flex-col h-screen bg-gray-50 dark:bg-dark-bg transition-colors duration-300">
+
+    <div class="bg-white dark:bg-dark-card p-6 rounded-b-[2rem] shadow-sm z-10 flex flex-col gap-4 transition-colors duration-300">
+        <div class="flex justify-between items-center">
+            <div>
+                <p class="text-[10px] text-gray-400 dark:text-gray-500 font-black tracking-widest uppercase flex items-center gap-1 mb-1">
+                    <i class="fas fa-film text-love"></i> MULTIMEDIA
+                </p>
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+                    Recomendaciones
+                </h2>
+            </div>
+
+            <div class="flex items-center gap-3">
+
+                <div class="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-full text-[10px] font-mono font-bold text-gray-500 hidden sm:block">
+                    @pairingCode
+                </div>
+
+                <button @onclick='() => Nav.NavigateTo("/dashboard")'
+                        class="bg-gray-50 dark:bg-gray-800 w-12 h-12 rounded-full text-gray-400 hover:text-love flex items-center justify-center hover:bg-pink-50 dark:hover:bg-gray-700 transition shadow-sm active:scale-90 border border-transparent dark:border-gray-700">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+            <button @onclick='() => mode = "LIST"'
+                    class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all @(mode == "LIST" ? "bg-white dark:bg-gray-700 shadow-sm text-love" : "text-gray-400 hover:text-gray-600")">
+                <i class="fas fa-list mr-1"></i> Mi Lista
+            </button>
+            <button @onclick='() => mode = "SEARCH"'
+                    class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all @(mode == "SEARCH" ? "bg-white dark:bg-gray-700 shadow-sm text-love" : "text-gray-400 hover:text-gray-600")">
+                <i class="fas fa-search mr-1"></i> Buscar
+            </button>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+
+        @if (mode == "LIST")
+        {
+            if (isLoading)
+            {
+                <div class="flex flex-col items-center justify-center mt-20 text-gray-400 gap-2 animate-pulse">
+                    <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+                    <p>Cargando lista...</p>
+                </div>
+            }
+            else if (recommendations == null || recommendations.Count == 0)
+            {
+                <div class="text-center text-gray-400 mt-20 flex flex-col items-center px-8 animate-fade-in-up">
+                    <div class="bg-white dark:bg-dark-card p-6 rounded-full shadow-sm mb-4">
+                        <i class="fas fa-clapperboard text-4xl text-gray-300"></i>
+                    </div>
+                    <p class="font-bold text-gray-500">Sin recomendaciones aún</p>
+                    <p class="text-sm mt-1">Busca una película o serie para compartir.</p>
+                    <button @onclick='() => mode = "SEARCH"' class="mt-4 text-love font-bold text-sm bg-pink-50 dark:bg-pink-900/20 px-4 py-2 rounded-lg hover:bg-pink-100 transition">
+                        <i class="fas fa-plus mr-1"></i> Agregar la primera
+                    </button>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in recommendations)
+                {
+                    <div class="bg-white dark:bg-dark-card p-3 rounded-2xl shadow-sm flex gap-3 relative overflow-hidden group border border-transparent dark:border-gray-800 animate-fade-in">
+                        <img src="@item.CoverUrl" class="w-24 h-36 object-cover rounded-xl shadow-md flex-shrink-0 bg-gray-200" />
+
+                        <div class="flex-1 flex flex-col justify-between z-10 py-1">
+                            <div>
+                                <div class="flex justify-between items-start">
+                                    <h3 class="font-bold text-gray-800 dark:text-white leading-tight line-clamp-2 pr-1">@item.Title</h3>
+                                    <button @onclick="() => CycleStatus(item)"
+                                            class="flex-shrink-0 text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 transition active:scale-95
+                                                        @(item.CurrentStatus == "Viendo" ? "bg-green-100 text-green-700" :
+                                                                                          item.CurrentStatus == "Terminado" ? "bg-gray-100 text-gray-500" : "bg-yellow-50 text-yellow-700")">
+                            @if (item.CurrentStatus == "Viendo")
+                                        {
+                                            <i class="fas fa-play text-[8px]"></i>
+                                        }
+                                        else if (item.CurrentStatus == "Terminado")
+                                        {
+
+                                            <i class="fas fa-check text-[8px]"></i>
+                                        }
+                                        else
+                                        {
+
+                                            <i class="fas fa-clock text-[8px]"></i>
+                                        }
+
+                                        @item.CurrentStatus
+                                    </button>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-1 font-medium">
+                                    <i class="@(item.MediaType == "Pelicula" ? "fas fa-film" : "fas fa-tv") mr-1"></i>
+                                    @item.MediaType • @item.ReleaseYear
+                                </p>
+                            </div>
+
+                            <div class="bg-gray-50 dark:bg-gray-800/50 p-2.5 rounded-xl mt-2">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="text-[10px] uppercase font-bold text-gray-400">Tu voto</span>
+                                    <span class="text-[10px] uppercase font-bold text-gray-400">Global</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <div class="flex gap-1">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            int star = i;
+                                            <button @onclick="() => Rate(item, star)"
+                                                    class="text-lg leading-none transition active:scale-125 focus:outline-none
+                                                                    @(item.MyScore >= star ? "text-love" : "text-gray-300 dark:text-gray-600")">
+                                                <i class="fas fa-star"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                    <div class="flex items-center gap-1 text-yellow-500 font-bold text-sm bg-white dark:bg-gray-700 px-2 py-0.5 rounded-lg shadow-sm">
+                                        <i class="fas fa-star text-[10px]"></i> @item.AverageScore.ToString("0.0")
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+        }
+
+        @if (mode == "SEARCH")
+        {
+            <div class="flex gap-2 mb-4 animate-fade-in-down">
+                <div class="flex-1 relative">
+                    <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                    <input @bind="searchQuery" @bind:event="oninput" @onkeydown="@Enter"
+                           placeholder="Ej: Breaking Bad, Inception..."
+                           class="w-full bg-white dark:bg-dark-card pl-10 pr-4 py-3.5 rounded-2xl shadow-sm border-none outline-none text-gray-700 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-love/20 transition-all" />
+                </div>
+                <button @onclick="SearchTmdb" class="bg-love text-white w-12 rounded-2xl shadow-lg shadow-love/30 flex items-center justify-center active:scale-95 transition hover:bg-love-dark">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+
+            @if (isSearching)
+            {
+                <div class="text-center mt-10 text-gray-400 animate-pulse">
+                    <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+                    <p class="mt-2 text-xs font-bold uppercase tracking-widest">Buscando...</p>
+                </div>
+            }
+            else if (searchResults != null && searchResults.Any())
+            {
+                <div class="grid grid-cols-2 gap-3 pb-20">
+                    @foreach (var res in searchResults)
+                    {
+                        <div class="bg-white dark:bg-dark-card rounded-xl shadow-sm overflow-hidden flex flex-col relative group animate-fade-in">
+                            <div class="relative">
+                                <img src="@res.Poster" class="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110" />
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60"></div>
+
+                                <button @onclick="() => AddMedia(res)"
+                                        class="absolute bottom-2 right-2 bg-white text-love w-9 h-9 rounded-full shadow-lg flex items-center justify-center active:scale-90 transition transform hover:scale-110 z-10">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+
+                            <div class="p-3">
+                                <p class="font-bold text-sm truncate text-gray-800 dark:text-white">@res.Title</p>
+                                <p class="text-[10px] text-gray-500 font-medium uppercase mt-0.5">
+                                    @res.Year • @res.Type
+                                </p>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+    </div>
+
+</div>
+
+@code {
+    string mode = "LIST"; // LIST | SEARCH
+    string pairingCode = "";
+    string myDeviceId = "";
+    string myName = "";
+    bool isLoading = false;
+    bool isSearching = false;
+
+    // Listas
+    List<RecommendationItem> recommendations;
+    List<TmdbResultDto> searchResults = new();
+    string searchQuery = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        pairingCode = Preferences.Get("pairing_code", "ERROR");
+        myDeviceId = Preferences.Get("my_device_id", "");
+        myName = Preferences.Get("user_name", "Yo");
+
+        await LoadList();
+    }
+
+    async Task LoadList()
+    {
+        isLoading = true;
+        try
+        {
+            var response = await Http.GetFromJsonAsync<ResponseModel<List<RecommendationItem>>>($"api/Media/{pairingCode}/{myDeviceId}");
+            if (response != null && response.Code == "200")
+            {
+                recommendations = response.Detalle;
+            }
+        }
+        catch (Exception ex) { Console.WriteLine(ex.Message); }
+        finally { isLoading = false; }
+    }
+
+    async Task Enter(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await SearchTmdb();
+    }
+
+    async Task SearchTmdb()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery)) return;
+        isSearching = true;
+        searchResults.Clear();
+
+        try
+        {
+            var response = await Http.GetFromJsonAsync<ResponseModel<List<TmdbResultDto>>>($"api/Media/search?query={searchQuery}");
+            if (response != null && response.Code == "200")
+            {
+                searchResults = response.Detalle;
+            }
+        }
+        catch (Exception ex) { Console.WriteLine(ex.Message); }
+        finally { isSearching = false; }
+    }
+
+    async Task AddMedia(TmdbResultDto item)
+    {
+        var req = new AddMediaRequest
+        {
+            TmdbId = item.TmdbId,
+            MediaType = item.MediaTypeKey,
+            PairingCode = pairingCode,
+            AddedByDevice = myDeviceId
+        };
+
+        var res = await Http.PostAsJsonAsync("api/Media/add", req);
+        if (res.IsSuccessStatusCode)
+        {
+            searchQuery = "";
+            searchResults.Clear();
+            mode = "LIST";
+            await LoadList();
+        }
+    }
+
+    async Task Rate(RecommendationItem item, int score)
+    {
+        item.MyScore = score;
+
+        var req = new RateMediaRequest
+        {
+            RecommendationId = item.Id,
+            DeviceId = myDeviceId,
+            UserName = myName,
+            Score = score
+        };
+        await Http.PostAsJsonAsync("api/Media/rate", req);
+    }
+
+    async Task CycleStatus(RecommendationItem item)
+    {
+        string next = item.CurrentStatus switch
+        {
+            "Pendiente" => "Viendo",
+            "Viendo" => "Terminado",
+            _ => "Pendiente"
+        };
+
+        item.CurrentStatus = next;
+
+        var req = new UpdateStatusRequest { RecommendationId = item.Id, NewStatus = next };
+        await Http.PostAsJsonAsync("api/Media/status", req);
+    }
+}
