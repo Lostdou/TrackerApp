@@ -1,6 +1,10 @@
 # DouTracker (TrackerApp)
 
 <div align="center">
+  <img src="TrackerApp\TrackerApp\Resources\AppIcon\appicon.png" alt="Logo DouTracker" width="100">
+</div>
+
+<div align="center">
 
 ![.NET 8](https://img.shields.io/badge/.NET_8-512BD4?style=for-the-badge&logo=dotnet&logoColor=white) ![Blazor](https://img.shields.io/badge/Blazor-512BD4?style=for-the-badge&logo=blazor&logoColor=white) ![MAUI](https://img.shields.io/badge/MAUI-512BD4?style=for-the-badge&logo=dotnet&logoColor=white) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white) ![SQL Server](https://img.shields.io/badge/SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white) ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![TMDB API](https://img.shields.io/badge/TMDB_API-01b4e4?style=for-the-badge&logo=themoviedatabase&logoColor=white)
 
@@ -149,3 +153,14 @@ No deberia ser muy complicado pasarlo a otro motor de bases de datos, pero yo es
 # Creditos
 Desarrollado por [**lostdou**](https://github.com/Lostdou) .
 Icono y dibujos por [**Iris**](https://www.instagram.com/iris_j.k/)
+
+
+# Capturas de Pantalla
+
+| Inicio de Sesión | Dashboard Principal | Rastreo GPS |
+|:---:|:---:|:---:|
+| <img src="Docs/Capturas/Login.png" width="250"> | <img src="Docs/Capturas/Dashboard.png" width="250"> | <img src="Docs/Capturas/Tracker.png" width="250"> |
+
+| Media Hub (Lista) | Detalles | Mensajes Post-It |
+|:---:|:---:|:---:|
+| <img src="Docs/Capturas/Recomendaciones.png" width="250"> | <img src="Docs/Capturas/Details.png" width="250"> | <img src="Docs/Capturas/Post-it.png" width="250"> |
