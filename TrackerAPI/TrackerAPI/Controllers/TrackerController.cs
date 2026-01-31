@@ -20,6 +20,7 @@ namespace TrackerAPI.Controllers
 
         public record LocationDto(string DeviceId, string PairingCode, string Name, double Lat, double Lon);
 
+        // Actualizar ubicación
         [HttpPost]
         [Route("update")]
         public async Task<ActionResult<ResponseModel<TrackerResponseDto>>> UpdateLocation([FromBody] LocationDto data)
@@ -88,16 +89,6 @@ namespace TrackerAPI.Controllers
                     Message = $"Estás a {Math.Round(km, 2)} km de {partner.Name}"
                 }
             });
-        }
-
-        [HttpGet]
-        [Route("{deviceId}")]
-        public async Task<ActionResult<ResponseModel<UserLocation>>> GetByDevice(string deviceId)
-        {
-            var user = await _db.QueryFirstOrDefaultAsync<UserLocation>("SELECT * FROM UserLocations WHERE DeviceId = @deviceId", new { deviceId });
-            return user == null
-                ? Ok(new ResponseModel<UserLocation> { Code = "404", Message = "No encontrado" })
-                : Ok(new ResponseModel<UserLocation> { Code = "200", Detalle = user });
         }
 
         private double Haversine(double lat1, double lon1, double lat2, double lon2)

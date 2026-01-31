@@ -34,13 +34,16 @@ namespace TrackerAPI.Controllers
 
                 return Ok(respuesta);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 respuesta.Add("Estado BBDD", "No Conectado");
+                respuesta.Add("error", ex.Message);
+                respuesta.Add("tipo", ex.GetType().FullName);
                 respuesta.Add("hora", DateTime.UtcNow);
 
                 return StatusCode(500, respuesta);
             }
+
         }
     }
 }

@@ -17,7 +17,7 @@ namespace TrackerAPI.Services
         public TmdbService(HttpClient http, IConfiguration config)
         {
             _http = http;
-            _apiKey = config["Tmdb:ApiKey"]; // Asegúrate de tener esto en appsettings.json
+            _apiKey = config["Tmdb:ApiKey"];
         }
 
         public async Task<List<TmdbResult>> SearchMultiAsync(string query)
@@ -35,14 +35,13 @@ namespace TrackerAPI.Services
 
         public async Task<TmdbResult?> GetDetailsAsync(int id, string mediaType)
         {
-            // mediaType debe ser 'movie' o 'tv'
+            // mediaType va a ser 'movie' o 'tv'
             var url = $"{mediaType}/{id}?api_key={_apiKey}&language=es-MX";
 
             var result = await _http.GetFromJsonAsync<TmdbResult>(url);
 
             if (result != null)
             {
-                // Forzamos el tipo porque el endpoint de detalles a veces no lo repite
                 result.MediaType = mediaType;
             }
             return result;

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Plugin.LocalNotification;
 using TrackerApp.Services;
+using Microsoft.Extensions.Configuration; // Necesario
+using System.Reflection; // Necesario
 
 namespace TrackerApp
 {
@@ -11,19 +13,26 @@ namespace TrackerApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
-                .UseLocalNotification() 
+                .UseLocalNotification()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
+            var assembly = Assembly.GetExecutingAssembly();
+            using var stream = assembly.GetManifestResourceStream("TrackerApp.appsettings.json");
 
-            string baseUrl = "https://doutracker-api.onrender.com";
-#if ANDROID
-            baseUrl = "https://doutracker-api.onrender.com";
+            if (stream != null)
+            {
+                var config = new ConfigurationBuilder()
+                    .AddJsonStream(stream)
+                    .Build();
 
-            //baseUrl = "http://10.0.2.2:5148";
-#endif
+                builder.Configuration.AddConfiguration(config);
+            }
+
+            string baseUrl = builder.Configuration["ApiSettings:BaseUrl"]
+                            ?? throw new InvalidOperationException("No encuentra la URL base");
 
             builder.Services.AddScoped(sp =>
             {

@@ -16,10 +16,12 @@ namespace TrackerAPI.Controllers
         }
 
         public record SendMessageDto(string SenderDeviceId, string SenderName, string PairingCode, string Content);
-        // Agregamos el ID al DTO para poder borrarlo despues
         public record MessageResultDto(int Id, string SenderName, string Content, DateTime CreatedAt);
 
-        [HttpPost("send")]
+
+        // Enviar post-it
+        [HttpPost]
+        [Route("send")]
         public async Task<IActionResult> SendNotification([FromBody] SendMessageDto data)
         {
             var sqlPartner = @"
@@ -48,10 +50,11 @@ namespace TrackerAPI.Controllers
             return Ok(new { message = "Mensaje guardado para entrega." });
         }
 
-        [HttpGet("check/{deviceId}")]
+        // Recuperar el buzon en busca de post-its nuevos
+        [HttpGet]
+        [Route("check/{deviceId}")]
         public async Task<IActionResult> CheckMessages(string deviceId)
         {
-            // CAMBIO: Solo LEEMOS, no borramos.
             var sqlGet = "SELECT Id, SenderName, Content, CreatedAt FROM PostItMessages WHERE TargetDeviceId = @DeviceId ORDER BY CreatedAt DESC";
             var messages = await _db.QueryAsync(sqlGet, new { DeviceId = deviceId });
 
@@ -63,8 +66,9 @@ namespace TrackerAPI.Controllers
             return Ok(messages.Select(m => new MessageResultDto((int)m.Id, m.SenderName, m.Content, m.CreatedAt)));
         }
 
-        // NUEVO: Endpoint para borrar una nota específica
-        [HttpDelete("delete/{id}")]
+        // Borrar nota leida 
+        [HttpDelete]
+        [Route("delete/{id}")]
         public async Task<IActionResult> DeleteMessage(int id)
         {
             var sqlDelete = "DELETE FROM PostItMessages WHERE Id = @Id";

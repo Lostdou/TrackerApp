@@ -2,7 +2,6 @@
 
 namespace TrackerAPI.Data
 {
-    // === DTOs para TMDB (Internos) ===
     public class TmdbSearchResponse { [JsonPropertyName("results")] public List<TmdbResult> Results { get; set; } = new(); }
 
     public class TmdbResult
@@ -21,7 +20,6 @@ namespace TrackerAPI.Data
         public string FullPosterUrl => !string.IsNullOrEmpty(PosterPath) ? $"https://image.tmdb.org/t/p/w500{PosterPath}" : "";
     }
 
-    // === Modelos de la Base de Datos ===
     public class RecommendationItem
     {
         public int Id { get; set; }
@@ -34,12 +32,10 @@ namespace TrackerAPI.Data
         public string CoverUrl { get; set; } = string.Empty;
         public string CurrentStatus { get; set; } = "Pendiente";
 
-        // Vistas
         public double AverageScore { get; set; }
         public int MyScore { get; set; }
     }
 
-    // === Requests ===
     public class AddMediaRequest
     {
         public int TmdbId { get; set; }

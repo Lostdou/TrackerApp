@@ -1,14 +1,20 @@
-UPDATES FUTURAS:
-Controlar el flujo de actualizaciones, para evitar tener que desinstalar la APP
+### Tracker
+- [ ] **Mapa Compartido**: Implementar visualización en mapa para mostrar la ubicación de ambos usuarios en tiempo real.
 
+---
 
+### Fotos Rapidas
+Esto podria ir en el menu de post-it.
 
+- [ ] **Subida de Fotos**: Crear endpoint y UI para "fotos rápidas".
+- [ ] **Lógica de Visualización**:
+    - [ ] Limitar visualización a 1 o 2 veces por usuario.
+    - [ ] **Auto-eliminación**: Borrado automático del servidor tras cumplir la condición de vista.
 
-- Tracker
--- Mostrar en un mapa la ubicacion de ambos
+--- 
+### Calendario
 
--- Sistema de imagenes rapidas.
-Uno sube una foto rapida, el otro la ve una o dos veces y se elimina. Similar a snapchat. 
-
--- Calendario
-Anotar fechas especiales, citas o recuerdos. En caso de tener un servidor o VPS, seria ideal que tmb se puedan adjuntar imagenes.
+- [ ] **Gestión de Eventos**: CRUD para anotar fechas especiales y citas.
+- [ ] **Recordatorios**: Sistema de notificaciones para fechas próximas.
+- [ ] **Adjuntos Multimedia** (Requiere VPS/Storage):
+    - [ ] Permitir adjuntar imágenes a un evento o recuerdo específico.

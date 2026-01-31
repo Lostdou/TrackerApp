@@ -19,11 +19,10 @@ namespace TrackerApp
 
         private void StartBackgroundLoop()
         {
-            // Intervalo de 2 horas
-            //var intervalo = TimeSpan.FromHours(2);
-
-            // Para pruebas rápidas descomenta esto:
-            var intervalo = TimeSpan.FromSeconds(30);
+            
+            var intervalo = TimeSpan.FromHours(2);
+            // Para pruebas
+            //var intervalo = TimeSpan.FromSeconds(30);
 
             _timer = new System.Threading.Timer(async _ =>
             {

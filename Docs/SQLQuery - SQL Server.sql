@@ -1,53 +1,50 @@
 IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'DouTrackerDB')
 BEGIN
     CREATE DATABASE DouTrackerDB;
-    PRINT 'Base de datos DouTrackerDB creada.';
 END
 GO
 
 USE DouTrackerDB;
 GO
 
--- 1. TABLA DE UBICACIONES (Aquí guardamos quién es quién)
+-- Ubicaciones (Aca tmb se define la pareja y la sala)
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='UserLocations' AND xtype='U')
 BEGIN
     CREATE TABLE UserLocations (
         Id INT IDENTITY(1,1) PRIMARY KEY,
         DeviceId NVARCHAR(450) NOT NULL,
-        PairingCode NVARCHAR(50), -- Código de la sala
-        Name NVARCHAR(100),       -- Nombre del usuario
+        PairingCode NVARCHAR(50),
+        Name NVARCHAR(100),       
         Latitude FLOAT,
         Longitude FLOAT,
         LastUpdate DATETIME2,
         CONSTRAINT UQ_DeviceId UNIQUE(DeviceId) -- Un solo registro por celular
     );
     CREATE INDEX idx_pairing_code ON UserLocations(PairingCode);
-    PRINT 'Tabla UserLocations creada.';
 END
 GO
 
--- 2. TABLA DE RECOMENDACIONES (MediaHub)
+-- Recomendaciones
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Recommendations' AND xtype='U')
 BEGIN
     CREATE TABLE Recommendations (
         Id INT IDENTITY(1,1) PRIMARY KEY,
-        PairingCode NVARCHAR(50) NOT NULL,  -- Vincula con la sala
-        TmdbId INT,                         -- ID de la película/serie en API externa
+        PairingCode NVARCHAR(50) NOT NULL,  
+        TmdbId INT,                         
         Title NVARCHAR(200) NOT NULL,
-        MediaType NVARCHAR(20) NOT NULL,    -- 'Pelicula', 'Serie'
+        MediaType NVARCHAR(20) NOT NULL,    
         ReleaseYear INT,
         Creator NVARCHAR(100),
         CoverUrl NVARCHAR(MAX),
-        CurrentStatus NVARCHAR(50) DEFAULT 'Pendiente', -- 'Viendo', 'Terminado'
+        CurrentStatus NVARCHAR(50) DEFAULT 'Pendiente', -- 'Viendo', 'Terminado' o 'Pendiente'
         AddedByDevice NVARCHAR(450),
         CreatedAt DATETIME2 DEFAULT SYSUTCDATETIME()
     );
     CREATE INDEX idx_rec_pairing ON Recommendations(PairingCode);
-    PRINT 'Tabla Recommendations creada.';
 END
 GO
 
--- 3. TABLA DE VOTOS (Para calificar recomendaciones)
+-- Calificar recomendaciones
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='RecommendationRatings' AND xtype='U')
 BEGIN
     CREATE TABLE RecommendationRatings (
@@ -58,22 +55,20 @@ BEGIN
         Score INT CHECK (Score >= 1 AND Score <= 10),
         UNIQUE(RecommendationId, DeviceId) -- Un voto por usuario por peli
     );
-    PRINT 'Tabla RecommendationRatings creada.';
 END
 GO
 
--- 4. TABLA DE MENSAJES (SISTEMA POST-IT / POLLING)
+-- Tablero de mensajes
 IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='PostItMessages' AND xtype='U')
 BEGIN
     CREATE TABLE PostItMessages (
         Id INT IDENTITY(1,1) PRIMARY KEY,
-        SenderName NVARCHAR(100),     -- Quién lo manda
-        TargetDeviceId NVARCHAR(450), -- Para quién es (Su DeviceId)
-        Content NVARCHAR(500),        -- El mensaje
+        SenderName NVARCHAR(100),     
+        TargetDeviceId NVARCHAR(450), 
+        Content NVARCHAR(500),       
         CreatedAt DATETIME2 DEFAULT SYSUTCDATETIME()
     );
     -- Índice para que la búsqueda sea instantánea
     CREATE INDEX idx_postit_target ON PostItMessages(TargetDeviceId);
-    PRINT 'Tabla PostItMessages creada.';
 END
 GO

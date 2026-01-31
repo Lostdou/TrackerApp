@@ -19,8 +19,9 @@ namespace TrackerAPI.Controllers
             _tmdb = tmdb;
         }
 
-        // 1. BUSCAR EN TMDB
-        [HttpGet("search")]
+        // Busqueda en TMDB
+        [HttpGet]
+        [Route("search")]
         public async Task<ActionResult<ResponseModel<object>>> Search([FromQuery] string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -54,8 +55,9 @@ namespace TrackerAPI.Controllers
             });
         }
 
-        // 2. AGREGAR A LA LISTA
-        [HttpPost("add")]
+        // Añadir nueva recomendacion
+        [HttpPost]
+        [Route("add")]
         public async Task<ActionResult<ResponseModel<string>>> Add([FromBody] AddMediaRequest req)
         {
             if (string.IsNullOrEmpty(req.PairingCode))
@@ -95,8 +97,9 @@ namespace TrackerAPI.Controllers
             return Ok(new ResponseModel<string> { Code = "200", Message = "Agregado correctamente", Detalle = details.DisplayTitle });
         }
 
-        // 3. OBTENER LISTA DE RECOMENDACIONES
-        [HttpGet("{pairingCode}/{myDeviceId}")]
+        // Recuperar lista de recomendaciones (y puntuacion)
+        [HttpGet]
+        [Route("{pairingCode}/{myDeviceId}")]
         public async Task<ActionResult<ResponseModel<IEnumerable<RecommendationItem>>>> Get(string pairingCode, string myDeviceId)
         {
             var sql = @"
@@ -118,8 +121,9 @@ namespace TrackerAPI.Controllers
             });
         }
 
-        // 4. CALIFICAR
-        [HttpPost("rate")]
+        // Añadir calificacion
+        [HttpPost]
+        [Route("rate")]
         public async Task<ActionResult<ResponseModel<string>>> Rate([FromBody] RateMediaRequest req)
         {
             var sql = @"
@@ -137,8 +141,9 @@ namespace TrackerAPI.Controllers
             return Ok(new ResponseModel<string> { Code = "200", Message = "Calificación guardada" });
         }
 
-        // 5. CAMBIAR ESTADO
-        [HttpPost("status")]
+        // Cambiar estado
+        [HttpPost]
+        [Route("status")]
         public async Task<ActionResult<ResponseModel<string>>> UpdateStatus([FromBody] UpdateStatusRequest req)
         {
             var sql = "UPDATE Recommendations SET CurrentStatus = @NewStatus WHERE Id = @RecommendationId";

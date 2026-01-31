@@ -2,7 +2,6 @@
 
 namespace TrackerApp.Data
 {
-    // --- WRAPPER GENÉRICO (Coincide con ResponseModel<T> de la API) ---
     public class ResponseModel<T>
     {
         [JsonPropertyName("code")]
@@ -15,7 +14,6 @@ namespace TrackerApp.Data
         public T Detalle { get; set; }
     }
 
-    // --- DTOs TRACKER ---
     public class TrackerResponseDto
     {
         public string Target { get; set; }
@@ -24,7 +22,6 @@ namespace TrackerApp.Data
         public string Message { get; set; }
     }
 
-    // --- DTOs MEDIA HUB ---
     public class RecommendationItem
     {
         public int Id { get; set; }
@@ -50,7 +47,6 @@ namespace TrackerApp.Data
         public string Overview { get; set; }
     }
 
-    // --- REQUESTS (Para enviar datos a la API) ---
     public class AddMediaRequest
     {
         public int TmdbId { get; set; }

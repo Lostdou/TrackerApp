@@ -1,5 +1,6 @@
 ﻿@page "/details"
 @inject NavigationManager Nav
+@inject HttpClient Http
 
 <div class="flex flex-col h-full bg-white dark:bg-dark-bg relative overflow-hidden transition-colors duration-300">
 
@@ -7,26 +8,38 @@
         <i class="fas fa-arrow-left text-xl"></i>
     </button>
 
+    <button @onclick="OpenModal" class="absolute top-6 right-6 z-20 bg-black/30 backdrop-blur-sm text-white p-3 rounded-full hover:bg-black/50 transition shadow-lg border border-white/10">
+        <i class="fas fa-info text-xl w-5 h-5 flex items-center justify-center"></i>
+    </button>
+
     <div class="h-1/2 bg-gray-900 dark:bg-black flex items-center justify-center rounded-b-[3rem] shadow-xl relative overflow-hidden transition-colors duration-300">
-
         <img src="images/zorros.png" class="w-full h-full object-cover" alt="Zorros" />
-
         <div class="absolute inset-0 bg-gradient-to-t from-white dark:from-dark-bg via-transparent to-transparent opacity-100"></div>
-
     </div>
 
     <div class="p-8 text-center space-y-6 flex-1 flex flex-col justify-center">
 
         <div>
-            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">Para Mili</h2>
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">
+                Aca iria un titulo...
+                @* Para Mili *@
+            </h2>
 
             <div class="flex justify-center text-love text-opacity-50 gap-4 text-xl mb-4">
                 <i class="fas fa-star"></i>
             </div>
 
             <p class="text-gray-500 dark:text-dark-muted leading-relaxed font-medium px-4 italic">
-                "Hay un paraíso en tu corazón,<br />
-                tu risa (o esta app) me guiará..."
+                Y aca una dedicatoria breve...
+                @* "Hay un paraíso en tu corazón,<br />
+                tu risa (o esta app) me guiará..." *@
+            </p>
+        </div>
+
+        <div class="transition-all duration-500 ease-in-out">
+            <p class="text-sm font-semibold @StatusColor flex items-center justify-center gap-2 animate-fade-in">
+                <i class="fas @StatusIcon"></i>
+                @StatusMessage
             </p>
         </div>
 
@@ -39,7 +52,102 @@
     </div>
 </div>
 
+@if (showModal)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" @onclick="CloseModal"></div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-sm relative z-10 overflow-hidden animate-fade-in-up border border-gray-100 dark:border-gray-700">
+
+            <div class="bg-love/10 dark:bg-love/5 p-6 text-center border-b border-gray-100 dark:border-gray-700">
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-white">TrackerApp</h3>
+            </div>
+
+            <div class="p-6 space-y-4">
+
+                <a href="https://github.com/Lostdou/TrackerApp" target="_blank" class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition group">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 group-hover:bg-love group-hover:text-white transition">
+                        <i class="fab fa-github text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Código Fuente</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Ver repositorio en GitHub</p>
+                    </div>
+                </a>
+
+                <a href="https://lostdou.dev" target="_blank" class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition group">
+                    <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-500 dark:text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition">
+                        <i class="fas fa-code text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Desarrollo</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Por Lostdou</p>
+                    </div>
+                </a>
+
+                <a href="https://www.instagram.com/iris_j.k/" target="_blank" class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition group">
+                    <div class="w-10 h-10 rounded-full bg-pink-50 dark:bg-pink-900/30 flex items-center justify-center text-pink-500 dark:text-pink-400 group-hover:bg-pink-500 group-hover:text-white transition">
+                        <i class="fas fa-paint-brush text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-sm font-bold text-gray-800 dark:text-gray-200">Iconos y Dibujos</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Por Iris</p>
+                    </div>
+                </a>
+
+            </div>
+
+            <div class="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700">
+                <button @onclick="CloseModal" class="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
+    private bool showModal = false;
+    private void OpenModal() => showModal = true;
+    private void CloseModal() => showModal = false;
+
+    private string StatusMessage = "Verificando sistema...";
+    private string StatusColor = "text-gray-400";
+    private string StatusIcon = "fa-circle-notch fa-spin";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/health");
+
+            if (response.IsSuccessStatusCode)
+            {
+                StatusMessage = "La API funciona correctamente";
+                StatusColor = "text-green-600 dark:text-green-400";
+                StatusIcon = "fa-check-circle";
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+            {
+                StatusMessage = "La base de datos no funciona";
+                StatusColor = "text-orange-500 dark:text-orange-400";
+                StatusIcon = "fa-database";
+            }
+            else
+            {
+                StatusMessage = "La API devolvió un error";
+                StatusColor = "text-red-500 dark:text-red-400";
+                StatusIcon = "fa-exclamation-triangle";
+            }
+        }
+        catch (Exception)
+        {
+            StatusMessage = "La API no contesta";
+            StatusColor = "text-red-600 dark:text-red-500";
+            StatusIcon = "fa-server";
+        }
+    }
+
     private void GoBack() => Nav.NavigateTo("/dashboard");
 
     private void Unlink()

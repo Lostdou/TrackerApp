@@ -2,3 +2,10 @@ bin/
 obj/
 
 .vs/
+
+**/appsettings*.json
+
+# no se como ocultarlos jijo
+TrackerAPI/TrackerAPI/Properties/PublishProfiles/site52689-WebDeploy.pubxml
+TrackerAPI/TrackerAPI/Properties/PublishProfiles/site52689-WebDeploy.pubxml.user
+TrackerAPI/TrackerAPI/TrackerAPI.csproj.user

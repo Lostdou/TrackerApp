@@ -18,13 +18,13 @@ namespace TrackerApp.Services
         {
             try
             {
-                // 1. Validar datos
+                // Obtenemos preferencias (deviceId y pairing code)
                 var deviceId = Preferences.Get("my_device_id", "");
                 var pairingCode = Preferences.Get("pairing_code", "");
 
                 if (string.IsNullOrEmpty(deviceId) || string.IsNullOrEmpty(pairingCode)) return;
 
-                // 2. Obtener Ubicación
+                // Chequeamos ubicacion
                 var location = await Geolocation.GetLastKnownLocationAsync() ?? await Geolocation.GetLocationAsync(new GeolocationRequest
                 {
                     DesiredAccuracy = GeolocationAccuracy.Medium,
@@ -33,42 +33,16 @@ namespace TrackerApp.Services
 
                 if (location != null)
                 {
-                    // 3. Enviar Ubicación a la API
                     var userName = Preferences.Get("user_name", $"User {deviceId.Substring(0, 3)}");
                     var data = new { DeviceId = deviceId, PairingCode = pairingCode, Name = userName, Lat = location.Latitude, Lon = location.Longitude };
 
-                    // Fire and forget (enviamos sin detenernos demasiado a esperar)
                     var response = await _http.PostAsJsonAsync("api/Tracker/update", data);
 
                     if (response.IsSuccessStatusCode)
                     {
                         var result = await response.Content.ReadFromJsonAsync<TrackerResponse>();
-                        // Si quisieras notificar por cercanía, descomenta esto:
-                        /*
-                        if (result != null && result.distanceKm > 0 && result.distanceKm < 1.0)
-                        {
-                            await ShowNotification("¡Están cerca!", result.Message);
-                        }
-                        */
                     }
                 }
-
-                // --- SECCIÓN DESACTIVADA PARA EL SISTEMA DE BUZÓN ---
-                // No consultamos mensajes aquí para no quitarlos del buzón antes de leerlos.
-                /*
-                var msgsResponse = await _http.GetAsync($"api/Notifications/check/{deviceId}");
-                if (msgsResponse.IsSuccessStatusCode)
-                {
-                    var messages = await msgsResponse.Content.ReadFromJsonAsync<List<MessageDto>>();
-                    if (messages != null && messages.Any())
-                    {
-                        foreach (var msg in messages)
-                        {
-                            await ShowNotification($"Nota de {msg.SenderName} 📝", "Tienes una nueva cartita en el buzón");
-                        }
-                    }
-                }
-                */
             }
             catch (Exception ex)
             {
