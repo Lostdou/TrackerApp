@@ -14,6 +14,9 @@ builder.Services.AddScoped<IDbConnection>(sp =>
     var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                            ?? builder.Configuration.GetConnectionString("CadenaSQL");
 
+    if (string.IsNullOrWhiteSpace(connectionString))
+        throw new InvalidOperationException("No se encontró la cadena de conexión a la base de datos.");
+
     return new SqlConnection(connectionString);
 });
 
