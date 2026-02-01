@@ -44,7 +44,33 @@
 
         @if (mode == "LIST")
         {
-            if (isLoading)
+            <div class="px-6 mt-4 flex items-center gap-3 animate-fade-in">
+
+                <div class="flex-1 overflow-x-auto flex gap-2 no-scrollbar py-1">
+                    @foreach (var estado in new[] { "Todos", "Pendiente", "Viendo", "Terminado" })
+                    {
+                        <button @onclick='async () => { filterStatus = estado; await LoadList(); }'
+                                class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider whitespace-nowrap transition-all
+                                @(filterStatus == estado ? "bg-love text-white shadow-md shadow-love/30" : "bg-white dark:bg-dark-card text-gray-400 border border-gray-100 dark:border-gray-700")">
+                            @estado
+                        </button>
+                    }
+                </div>
+
+                <button @onclick='async () => { sortOrder = sortOrder == "DESC" ? "ASC" : "DESC"; await LoadList(); }'
+                        class="bg-white dark:bg-dark-card w-8 h-8 rounded-full shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center text-gray-400 active:scale-90 transition">
+                    @if (sortOrder == "DESC")
+                    {
+                        <i class="fas fa-sort-amount-down"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-sort-amount-up"></i>
+                    }
+                </button>
+            </div>
+
+            @if (isLoading)
             {
                 <div class="flex flex-col items-center justify-center mt-20 text-gray-400 gap-2 animate-pulse">
                     <i class="fas fa-circle-notch fa-spin text-2xl"></i>
@@ -77,20 +103,18 @@
                                     <h3 class="font-bold text-gray-800 dark:text-white leading-tight line-clamp-2 pr-1">@item.Title</h3>
                                     <button @onclick="() => CycleStatus(item)"
                                             class="flex-shrink-0 text-[10px] px-2 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1 transition active:scale-95
-                                                        @(item.CurrentStatus == "Viendo" ? "bg-green-100 text-green-700" :
-                                                                                          item.CurrentStatus == "Terminado" ? "bg-gray-100 text-gray-500" : "bg-yellow-50 text-yellow-700")">
+                                                                    @(item.CurrentStatus == "Viendo" ? "bg-green-100 text-green-700" :
+                                                                                                      item.CurrentStatus == "Terminado" ? "bg-gray-100 text-gray-500" : "bg-yellow-50 text-yellow-700")">
                             @if (item.CurrentStatus == "Viendo")
                                         {
                                             <i class="fas fa-play text-[8px]"></i>
                                         }
                                         else if (item.CurrentStatus == "Terminado")
                                         {
-
                                             <i class="fas fa-check text-[8px]"></i>
                                         }
                                         else
                                         {
-
                                             <i class="fas fa-clock text-[8px]"></i>
                                         }
 
@@ -115,7 +139,7 @@
                                             int star = i;
                                             <button @onclick="() => Rate(item, star)"
                                                     class="text-lg leading-none transition active:scale-125 focus:outline-none
-                                                                    @(item.MyScore >= star ? "text-love" : "text-gray-300 dark:text-gray-600")">
+                                                                                  @(item.MyScore >= star ? "text-love" : "text-gray-300 dark:text-gray-600")">
                                                 <i class="fas fa-star"></i>
                                             </button>
                                         }
@@ -185,6 +209,11 @@
 </div>
 
 @code {
+
+    // Filtros para la busqueda
+    string filterStatus = "Todos";
+    string sortOrder = "DESC";
+
     string mode = "LIST"; // LIST | SEARCH
     string pairingCode = "";
     string myDeviceId = "";
@@ -211,7 +240,10 @@
         isLoading = true;
         try
         {
-            var response = await Http.GetFromJsonAsync<ResponseModel<List<RecommendationItem>>>($"api/Media/{pairingCode}/{myDeviceId}");
+            string url = $"api/Media/{pairingCode}/{myDeviceId}?status={filterStatus}&sort={sortOrder}";
+
+            var response = await Http.GetFromJsonAsync<ResponseModel<List<RecommendationItem>>>(url);
+
             if (response != null && response.Code == "200")
             {
                 recommendations = response.Detalle;

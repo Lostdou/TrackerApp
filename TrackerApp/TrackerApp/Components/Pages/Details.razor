@@ -21,8 +21,8 @@
 
         <div>
             <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-2">
-                Aca iria un titulo...
-                @* Para Mili *@
+                 aca iria un titulo...
+               @* Para Mili *@
             </h2>
 
             <div class="flex justify-center text-love text-opacity-50 gap-4 text-xl mb-4">
@@ -30,9 +30,9 @@
             </div>
 
             <p class="text-gray-500 dark:text-dark-muted leading-relaxed font-medium px-4 italic">
-                Y aca una dedicatoria breve...
-                @* "Hay un paraíso en tu corazón,<br />
-                tu risa (o esta app) me guiará..." *@
+                 Y aca una dedicatoria breve...
+                    @* "Hay un paraíso en tu corazón,<br />
+                    tu risa (o esta app) me guiará..." *@
             </p>
         </div>
 
@@ -61,8 +61,10 @@
 
             <div class="bg-love/10 dark:bg-love/5 p-6 text-center border-b border-gray-100 dark:border-gray-700">
                 <h3 class="text-2xl font-bold text-gray-800 dark:text-white">TrackerApp</h3>
+                <p class="text-center text-[10px] text-gray-300 dark:text-gray-600 font-mono mt-6 tracking-widest uppercase">
+                    v.@appVersion
+                </p>
             </div>
-
             <div class="p-6 space-y-4">
 
                 <a href="https://github.com/Lostdou/TrackerApp" target="_blank" class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-700/50 transition group">
@@ -98,6 +100,7 @@
             </div>
 
             <div class="p-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-100 dark:border-gray-700">
+
                 <button @onclick="CloseModal" class="w-full py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                     Cerrar
                 </button>
@@ -107,6 +110,8 @@
 }
 
 @code {
+
+    private string appVersion = "";
     private bool showModal = false;
     private void OpenModal() => showModal = true;
     private void CloseModal() => showModal = false;
@@ -117,6 +122,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        appVersion = $"{AppInfo.Current.VersionString} ({AppInfo.Current.BuildString})";
+
         try
         {
             var response = await Http.GetAsync("api/health");

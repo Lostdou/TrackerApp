@@ -33,18 +33,23 @@
         @if (apiResponse != null)
         {
             <div class="bg-white dark:bg-dark-card w-full rounded-[2rem] p-8 shadow-xl text-center border border-pink-100 dark:border-gray-800 animate-pulse relative overflow-hidden transition-colors duration-300">
-                <i class="fas fa-map-location-dot absolute -right-6 -bottom-6 text-[8rem] text-gray-50 dark:text-gray-800 opacity-50 transform rotate-12"></i>
-
-                <p class="text-gray-400 dark:text-dark-muted text-sm mb-1 flex items-center justify-center gap-2 font-medium">
-                    <i class="fas fa-location-dot text-love"></i>
-                    Distancia hacia <span class="text-love font-bold uppercase">@apiResponse.Target</span>
-                </p>
 
                 <h1 class="text-6xl font-black text-gray-800 dark:text-white mb-2 tracking-tighter z-10 relative">
                     @apiResponse.DistanceKm<span class="text-2xl text-gray-400 dark:text-gray-600 font-normal ml-1">km</span>
                 </h1>
 
-                <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold gap-2 shadow-sm z-10 relative">
+                <div class="w-full h-48 mt-4 rounded-xl overflow-hidden shadow-inner border border-gray-200 dark:border-gray-700 relative z-10">
+                    <iframe width="100%"
+                            height="100%"
+                            frameborder="0"
+                            scrolling="no"
+                            marginheight="0"
+                            marginwidth="0"
+                            src="https://maps.google.com/maps?q=@(apiResponse.TargetLat.ToString(System.Globalization.CultureInfo.InvariantCulture)),@(apiResponse.TargetLon.ToString(System.Globalization.CultureInfo.InvariantCulture))&hl=es&z=15&output=embed">
+                    </iframe>
+                </div>
+
+                <div class="mt-4 inline-flex items-center px-4 py-1.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold gap-2 shadow-sm z-10 relative">
                     <i class="fas fa-clock"></i>
                     Visto: @apiResponse.LastSeen.ToLocalTime().ToString("HH:mm:ss")
                 </div>

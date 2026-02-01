@@ -86,7 +86,11 @@ namespace TrackerAPI.Controllers
                     Target = partner.Name,
                     DistanceKm = Math.Round(km, 2),
                     LastSeen = partner.LastUpdate,
-                    Message = $"Estás a {Math.Round(km, 2)} km de {partner.Name}"
+                    Message = $"Estás a {Math.Round(km, 2)} km de {partner.Name}",
+
+                    // Ahora tambien le envio las coordenadas del target
+                    TargetLat = partner.Latitude,
+                    TargetLon = partner.Longitude
                 }
             });
         }
@@ -101,12 +105,15 @@ namespace TrackerAPI.Controllers
         }
         private double ToRadians(double angle) => Math.PI * angle / 180.0;
 
+
         public class TrackerResponseDto
         {
             public string Target { get; set; } = "";
             public double DistanceKm { get; set; }
             public DateTime LastSeen { get; set; }
             public string Message { get; set; } = "";
+            public double TargetLat { get; set; }
+            public double TargetLon { get; set; }
         }
     }
 }

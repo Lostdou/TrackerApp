@@ -1,5 +1,11 @@
 ### Tracker
-- [ ] **Mapa Compartido**: Implementar visualización en mapa para mostrar la ubicación de ambos usuarios en tiempo real.
+- [x] **Mapa Compartido**: Implementar visualización en mapa para mostrar la ubicación del otro usuario.
+    - [ ] Que muestre los dos usuarios al en el mismo mapa.
+
+---
+
+### Recomendaciones
+- [ ] **Recomendaciones de juegos**: Igual al actual de peliculas/series, pero con videojuegos.
 
 ---
 
@@ -12,6 +18,7 @@ Esto podria ir en el menu de post-it.
     - [ ] **Auto-eliminación**: Borrado automático del servidor tras cumplir la condición de vista.
 
 --- 
+
 ### Calendario
 
 - [ ] **Gestión de Eventos**: CRUD para anotar fechas especiales y citas.

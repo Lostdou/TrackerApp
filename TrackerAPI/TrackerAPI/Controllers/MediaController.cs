@@ -98,9 +98,14 @@ namespace TrackerAPI.Controllers
         }
 
         // Recuperar lista de recomendaciones (y puntuacion)
+        // Y ahora filtrado por estado y fecha de creacion
         [HttpGet]
         [Route("{pairingCode}/{myDeviceId}")]
-        public async Task<ActionResult<ResponseModel<IEnumerable<RecommendationItem>>>> Get(string pairingCode, string myDeviceId)
+        public async Task<ActionResult<ResponseModel<IEnumerable<RecommendationItem>>>> Get(
+            string pairingCode,
+            string myDeviceId,
+            [FromQuery] string status = "Todos",
+            [FromQuery] string sort = "DESC")
         {
             var sql = @"
                 SELECT 
@@ -108,10 +113,20 @@ namespace TrackerAPI.Controllers
                     COALESCE((SELECT AVG(CAST(Score AS FLOAT)) FROM RecommendationRatings WHERE RecommendationId = r.Id), 0) as AverageScore,
                     COALESCE((SELECT Score FROM RecommendationRatings WHERE RecommendationId = r.Id AND DeviceId = @myDeviceId), 0) as MyScore
                 FROM Recommendations r
-                WHERE r.PairingCode = @pairingCode
-                ORDER BY r.CreatedAt DESC";
+                WHERE r.PairingCode = @pairingCode"
+            ;
 
-            var list = await _db.QueryAsync<RecommendationItem>(sql, new { pairingCode, myDeviceId });
+            if (!string.IsNullOrEmpty(status) && status != "Todos")
+            {
+                sql += " AND r.CurrentStatus = @status";
+            }
+
+            if (sort == "ASC")
+                sql += " ORDER BY r.CreatedAt ASC";
+            else
+                sql += " ORDER BY r.CreatedAt DESC";
+
+            var list = await _db.QueryAsync<RecommendationItem>(sql, new { pairingCode, myDeviceId, status });
 
             return Ok(new ResponseModel<IEnumerable<RecommendationItem>>
             {

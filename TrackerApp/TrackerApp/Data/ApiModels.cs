@@ -20,6 +20,8 @@ namespace TrackerApp.Data
         public double DistanceKm { get; set; }
         public DateTime LastSeen { get; set; }
         public string Message { get; set; }
+        public double TargetLat { get; set; }
+        public double TargetLon { get; set; }
     }
 
     public class RecommendationItem
